@@ -16,7 +16,10 @@ from anago.layers import CRF
 import anago
 import pyrebase
 
-
+weights="./weights.h5"
+params="./params.json"
+preprocessor="./preprocessor.pickle"
+model = anago.Sequence.load(weights, params, preprocessor)
 
 class asknplay:
     def Data_make(self):
@@ -32,11 +35,7 @@ class asknplay:
         return df
     def Q_analsys(self,s,q_id):
         print(s)
-        weights="./weights.h5"
-        params="./params.json"
-        preprocessor="./preprocessor.pickle"
         self.Data_make()
-        model = anago.Sequence.load(weights, params, preprocessor)
         data=model.analyze(s)
         tokenized_text = word_tokenize(s)
         name=[]
