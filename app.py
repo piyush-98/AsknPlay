@@ -277,7 +277,7 @@ class asknplay:
                             return "Not applicable"
                 result=Batsmen_cur(ind,data)
                 return result
-            elif data["Innings"][0]['ovr']==max_ovr or data['state']=="complete": #not playing but finished
+            elif float(data["Innings"][0]['ovr'])==float(max_ovr) or data['state']=="complete": #not playing but finished
                 return -1 ## INVALID
             else:
                 return "Not applicable"
@@ -300,7 +300,7 @@ class asknplay:
                             return "Not applicable"
                 result=Batsmen_cur(ind,data)
                 return result
-            elif data["Innings"][0]['ovr']==max_ovr or data['state']=="complete": #not playing but finished
+            elif float(data["Innings"][0]['ovr'])==float(max_ovr) or data['state']=="complete": #not playing but finished
                 return -1 ## INVALID
             else:
                 return "Not applicable"
@@ -640,9 +640,8 @@ def main():
                 else:
                     u="Questions/CRICKET/".format(q_id)
                     db.child(u).child(i).update({"reviewed":"2"})
-                    url="https://agile-bastion-20138.herokuapp.com/submitSolution/{}/{}".format(int(i),int(result))
-                    res=requests.get(url)
-                    hash_i=(res.text)
+                    #url="https://agile-bastion-20138.herokuapp.com/submitsolution/{}/{}".format(int(i),int(result))
+                    res=requests.post("https://agile-bastion-20138.herokuapp.com/submitsolution",data={'qid':int(i),'ans':int(result)})
             elif dlink[i]['reviewed']=="0":
                 print(i)
                 print("maaaa")
