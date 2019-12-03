@@ -641,7 +641,7 @@ def main():
                 else:
                     u="Questions/CRICKET/".format(q_id)
                     db.child(u).child(i).update({"reviewed":"2"})
-                    url="https://enigmatic-hamlet-61462.herokuapp.com/submitSolution/{}/{}".format(int(i),int(result))
+                    url="https://agile-bastion-20138.herokuapp.com/submitSolution/{}/{}".format(int(i),int(result))
                     res=requests.get(url)
                     hash_i=(res.text)
             elif dlink[i]['reviewed']=="0":
@@ -661,6 +661,4 @@ def main():
             else:
                 continue
 
-
-a=asknplay()
-a.Q_analsys("How many runs will Virat score","11")
+main()
