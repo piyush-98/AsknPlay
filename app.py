@@ -207,6 +207,12 @@ class asknplay:
         data=self.scorecard(mid)
         if float(data["Innings"][0]['ovr'])>=float(over):
             return -1
+    def idperteam(self,mid):
+        data=self.match_info(mid)
+        id_1=data['team1']['squad']
+        id_2=data['team2']['squad']
+        data_s=self.scorecard(mid)
+        bat_id=data_s["Innings"][0]["bat_team_id"]
 
     def valid_bat_over(self,id,over,mid):
         print("snssh")
@@ -246,7 +252,7 @@ class asknplay:
                         #batsmen is playing or have been dismissed
                         if data["Innings"][0]['batsmen'][ind]['out_desc']!="batting": ## dismissed
                             return(data["Innings"][0]['batsmen'][ind]['r'])
-                        elif data["Innings"][0]['ovr']==max_ovr or data['state']=="complete":
+                        elif float(data["Innings"][0]['ovr'])==float(max_ovr) or data['state']=="complete":
                             print("favour")
                             return(data["Innings"][0]['batsmen'][ind]['r'])
 
@@ -389,14 +395,14 @@ class asknplay:
 
             return "Not applicable"
     def Team_run(self,mid,max_ovr):
-        data=self.scorecard()
+        data=self.scorecard(mid)
         if float(data["Innings"][0]['ovr'])==float(max_ovr) or data['state']=="complete":
             runs=data["Innings"][0]['score']
             return runs
         else:
             return "Not applicable"
     def Team_wickets(self,mid,max_ovr):
-        data=self.scorecard()
+        data=self.scorecard(mid)
         if float(data["Innings"][0]['ovr'])==float(max_ovr) or data['state']=="complete":
             wickets=data["Innings"][0]['wkts']
             return wickets
@@ -409,7 +415,7 @@ class asknplay:
 
     def decision(self,mid,q_id,db,dlink):
         data=self.scorecard(mid)
-        if data["state"]=="preview":
+        if data["state"]=="preview" or data["state"]=="innings break":
             return "Not applicable"
         ls=[]
         index=0
@@ -433,21 +439,21 @@ class asknplay:
                         return "Not applicable"
                 elif 9 in ls:
                     if float(data["Innings"][0]['ovr'])==float(max_ovr) or data['state']=="complete":
-                        result=Team_w(mid)
+                        result=self.Team_w(mid)
                         return result
                     else:
                         return "Not applicable"
                 elif 10 in ls:
                     max_ovr=self.max_over_gen(mid)
                     if float(data["Innings"][0]['ovr'])==float(max_ovr) or data['state']=="complete":
-                        result=Team_run(mid,max_ovr)
+                        result=self.Team_run(mid,max_ovr)
                         return result
                     else:
                         return "Not applicable"
                 elif 11 in ls:
                     max_ovr=self.max_over_gen(mid)
                     if float(data["Innings"][0]['ovr'])==float(max_ovr) or data['state']=="complete":
-                        result=Team_wickets(mid,max_ovr)
+                        result=self.Team_wickets(mid,max_ovr)
                         return result
                     else:
                         return "Not applicable"
@@ -532,6 +538,7 @@ class asknplay:
 
 
     def reviewing(self,mid,q_id,db,dlink):
+        u="Questions/CRICKET/"
         data=self.scorecard(mid)
         ls=[]
         index=0
@@ -547,21 +554,21 @@ class asknplay:
         print(ls)
         for i in ls:
             if i==1:
+                db.child(u).child(q_id).update({"q_type":"1"})
                 if 2 in ls:
-                    if data["state"]=="preview":
+                    db.child(u).child(q_id).update({"q_type":"12"})
+                    if data["state"]=="preview" or data["state"]=="innings break":
                         return 1
                     over=df.iloc[index]["Over"]
                     if self.valid_Team_over(over,mid)==-1:
                         return -1
                     else:
                         return 1
-                elif 9 in ls:
-                    result=Team_w(mid)
             elif i==2:
-                if data["state"]=="preview":
-                    return 1
-
                 if 4 in ls:
+                    db.child(u).child(q_id).update({"q_type":"32"})
+                    if data["state"]=="preview" or data["state"]=="innings break":
+                        return 1
                     name=df.iloc[index]["Batsmen"]
                     over=df.iloc[index]["Over"]
                     id=self.id_gen(name,mid)
@@ -573,7 +580,8 @@ class asknplay:
                     else:
                         return 1
             elif i==3:
-                if data["state"]=="preview":
+                db.child(u).child(q_id).update({"q_type":"4"})
+                if data["state"]=="preview" or data["state"]=="innings break":
                     return 1
                 name=df.iloc[index]["Bowler"]
                 id=self.id_gen(name,mid)
@@ -585,7 +593,8 @@ class asknplay:
                 else:
                     return 1
             elif i==4:
-                if data["state"]=="preview":
+                db.child(u).child(q_id).update({"q_type":"3"})
+                if data["state"]=="preview" or data["state"]=="innings break":
                     return 1
                 name=df.iloc[index]["Batsmen"]
                 id=self.id_gen(name,mid)
@@ -625,7 +634,11 @@ def main():
             key.append(i)
         q_id=key
         for i in q_id:
+            if dlink[i]['type']=="2":
+                u="Questions/CRICKET/"
+                db.child(u).child(i).update({"reviewed":"1"})
             print(dlink[i]['reviewed'])
+
             if dlink[i]['reviewed']=="1":
                 print(i)
                 question=(dlink[i]['content'])
@@ -636,6 +649,7 @@ def main():
                     u="Questions/CRICKET/".format(i)
                     db.child(u).child(i).update({"reviewed":"-1"})
                 elif result=="Not applicable":
+                    print(result)
                     continue
                 else:
                     u="Questions/CRICKET/".format(q_id)
